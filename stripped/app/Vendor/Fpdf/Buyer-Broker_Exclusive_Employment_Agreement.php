@@ -1,0 +1,888 @@
+<?php
+require('fpdf.php');
+	//  Define variable
+	$info=array();
+	$info['buyer_name']='Reza';
+	$info['firm_name']='Reza';
+	$info['salesperson_name']='Reza';
+	$info['agreement_commence']='Reza';
+	$info['agreement_expire ']='Reza';
+	$info['employment_other']='rrr';
+	$info['agency_other']='rrr';
+	$info['retainer_fee']='rrr';
+	$info['amount_compensation']='rrr';
+	$info['agrees_days']='rrr';
+	$info['additional_terms']='rrr';
+	$info['buyers_signiture1']='rrr';
+	$info['buyers_signiture_date1']='12-07-2014';
+	$info['buyers_signiture2']='wwwwwwwwwwwww';
+	$info['buyers_signiture_date2']='12-05-2018';
+	$info['street']='rrrefeeeeeeer drgrdtht dfgrthte6 dfrgrd';
+	$info['city']='dhaka';
+	$info['state']='feni';
+	$info['zip_code']='1204';
+	$info['telephone']='016596+6+6+6++';
+	$info['fax']='86896';
+	$info['firm_name1']='5678687';
+	$info['salesperson_signiture']='5876586868';
+	$info['salesperson_date']='68686';
+	$info['brokerage_file']='696896';
+	$info['managers_initials']='6986896';
+	$info['brokers_initials']='68689';
+	$info['brokers_date']='7896896';
+	
+class PDF extends FPDF
+{
+var $B;
+var $I;
+var $U;
+var $HREF;
+
+function PDF($orientation='P', $unit='mm', $size='A4')
+{
+    // Call parent constructor
+    $this->FPDF($orientation,$unit,$size);
+    // Initialization
+    $this->B = 0;
+    $this->I = 0;
+    $this->U = 0;
+    $this->HREF = '';
+}
+
+function WriteHTML($html)
+{
+    // HTML parser
+    $html = str_replace("\n",' ',$html);
+    $a = preg_split('/<(.*)>/U',$html,-1,PREG_SPLIT_DELIM_CAPTURE);
+    foreach($a as $i=>$e)
+    {
+        if($i%2==0)
+        {
+            // Text
+            if($this->HREF)
+                $this->PutLink($this->HREF,$e);
+            else
+                $this->Write(5,$e);
+        }
+        else
+        {
+            // Tag
+            if($e[0]=='/')
+                $this->CloseTag(strtoupper(substr($e,1)));
+            else
+            {
+                // Extract attributes
+                $a2 = explode(' ',$e);
+                $tag = strtoupper(array_shift($a2));
+                $attr = array();
+                foreach($a2 as $v)
+                {
+                    if(preg_match('/([^=]*)=["\']?([^"\']*)/',$v,$a3))
+                        $attr[strtoupper($a3[1])] = $a3[2];
+                }
+                $this->OpenTag($tag,$attr);
+            }
+        }
+    }
+}
+
+function OpenTag($tag, $attr)
+{
+    // Opening tag
+    if($tag=='B' || $tag=='I' || $tag=='U')
+        $this->SetStyle($tag,true);
+    if($tag=='A')
+        $this->HREF = $attr['HREF'];
+    if($tag=='BR')
+        $this->Ln(5);
+}
+
+function CloseTag($tag)
+{
+    // Closing tag
+    if($tag=='B' || $tag=='I' || $tag=='U')
+        $this->SetStyle($tag,false);
+    if($tag=='A')
+        $this->HREF = '';
+}
+
+function SetStyle($tag, $enable)
+{
+    // Modify style and select corresponding font
+    $this->$tag += ($enable ? 1 : -1);
+    $style = '';
+    foreach(array('B', 'I', 'U') as $s)
+    {
+        if($this->$s>0)
+            $style .= $s;
+    }
+    $this->SetFont('',$style);
+}
+
+function PutLink($URL, $txt)
+{
+    // Put a hyperlink
+    $this->SetTextColor(0,0,255);
+    $this->SetStyle('U',true);
+    $this->Write(5,$txt,$URL);
+    $this->SetStyle('U',false);
+    $this->SetTextColor(0);
+}
+
+
+//Cell with horizontal scaling if text is too wide
+	function CellFit($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='', $scale=false, $force=true)
+	{
+		//Get string width
+		$str_width=$this->GetStringWidth($txt);
+
+		//Calculate ratio to fit cell
+		if($w==0)
+			$w = $this->w-$this->rMargin-$this->x;
+		$ratio = ($w-$this->cMargin*2)/$str_width;
+
+		$fit = ($ratio < 1 || ($ratio > 1 && $force));
+		if ($fit)
+		{
+			if ($scale)
+			{
+				//Calculate horizontal scaling
+				$horiz_scale=$ratio*100.0;
+				//Set horizontal scaling
+				$this->_out(sprintf('BT %.2F Tz ET',$horiz_scale));
+			}
+			else
+			{
+				//Calculate character spacing in points
+				$char_space=($w-$this->cMargin*2-$str_width)/max($this->MBGetStringLength($txt)-1,1)*$this->k;
+				//Set character spacing
+				$this->_out(sprintf('BT %.2F Tc ET',$char_space));
+			}
+			//Override user alignment (since text will fill up cell)
+			$align='';
+		}
+
+		//Pass on to Cell method
+		$this->Cell($w,$h,$txt,$border,$ln,$align,$fill,$link);
+
+		//Reset character spacing/horizontal scaling
+		if ($fit)
+			$this->_out('BT '.($scale ? '100 Tz' : '0 Tc').' ET');
+	}
+
+	//Cell with horizontal scaling only if necessary
+	function CellFitScale($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='')
+	{
+		$this->CellFit($w,$h,$txt,$border,$ln,$align,$fill,$link,true,false);
+	}
+
+	//Cell with horizontal scaling always
+	function CellFitScaleForce($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='')
+	{
+		$this->CellFit($w,$h,$txt,$border,$ln,$align,$fill,$link,true,true);
+	}
+
+	//Cell with character spacing only if necessary
+	function CellFitSpace($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='')
+	{
+		$this->CellFit($w,$h,$txt,$border,$ln,$align,$fill,$link,false,false);
+	}
+
+	//Cell with character spacing always
+	function CellFitSpaceForce($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='')
+	{
+		//Same as calling CellFit directly
+		$this->CellFit($w,$h,$txt,$border,$ln,$align,$fill,$link,false,true);
+	}
+
+	//Patch to also work with CJK double-byte text
+	function MBGetStringLength($s)
+	{
+		if($this->CurrentFont['type']=='Type0')
+		{
+			$len = 0;
+			$nbbytes = strlen($s);
+			for ($i = 0; $i < $nbbytes; $i++)
+			{
+				if (ord($s[$i])<128)
+					$len++;
+				else
+				{
+					$len++;
+					$i++;
+				}
+			}
+			return $len;
+		}
+		else
+			return strlen($s);
+	}
+
+
+
+
+
+//  Code for creating pdf
+
+// Page header
+function Header()
+{	if($this->PageNo() == 1){
+	$this->SetFont('Arial','B',10);
+	$this->Cell(0,1,'Presidential Realty',0,1,'L');
+	$this->SetFont('Arial','B',16);
+	$this->Cell(100,12,'BUYER-BROKER EXCLUSIVE EMPLOYMENT AGREEMENT',0,0,'L');
+	$this->SetFont('Arial','',7);
+	$this->Cell(0,3,'Page '.$this->PageNo().' of {nb}','',1,'R');
+	$this->SetX(180);
+	$this->Cell(0,5,'Document updated:','L',1,'C');
+	$this->SetX(180);
+	$this->SetFont('Arial','B',7);
+	$this->Cell(0,4,'February 2010','L',1,'C');
+	
+	$this->Cell(40,20,$this->Image('images/arizona_left.png',$this->GetX()+2, $this->GetY()+3,35,15),'1',0,'C');
+	$this->SetFont('Arial','I',8);
+	
+	$this->MultiCell(130,4,utf8_decode("The pre-printed portion of this form has been drafted by the Arizona Association of REALTORS®. \nAny change in the pre-printed language of this form must be made in a prominent manner. \nNo representations are made as to the legal validity, adequacy and/or effects of any provision,\nincluding tax consequences thereof. If you desire legal, tax or other professional advice, please\nconsult your attorney, tax advisor or professional consultant."),'1','L');
+	$this->SetY(23);
+	$this->SetX(180);
+	$this->Cell(25,20,$this->Image('images/arizona_right.png',$this->GetX()+2, $this->GetY()+3,20,12),'1',0,'C');
+	}
+    
+}
+
+// Page footer
+function Footer()
+{	
+
+	global $info;
+	if($this->PageNo() == 1){
+	$str1=utf8_decode('Buyer-Broker Exclusive Employment Agreement . Updated: February 2010 ');
+	$str2=utf8_decode('Copyright © 2010 Arizona Association of REALTORS®. All rights reserved.');
+	$this->SetFont('Arial','',8);
+	$this->Cell(25,5,'','',1,'');
+	$this->Cell(195,3,'','B',1,'');  	
+	$this->Cell(195,4,$str1,'',1,'C'); 
+	$this->Cell(195,4,$str2,'',1,'C'); 
+	$this->Cell(195,2,'','T',1,'');  
+	
+	$this->Cell(195,2,'','',1,'');  
+	$this->Cell(0,3,'Page '.$this->PageNo().' of {nb}','',1,'C');
+	
+	$this->Cell(180,2,'Presidential Realty, 4856 E Baseline Rd #106 Mesa, AZ 85206','',1,'L'); 	
+	$this->Cell(40,5,'Phone: 480-235-1400','',0,'');
+	$this->Cell(20,5,'','',0,'');
+	$this->Cell(30,5,"Fax: 480-212-5464",'',0,'');
+	$this->Cell(20,5,'','',0,'');  
+	$this->Cell(30,5,"Steve Peterson",'',1,'');
+	
+	$this->Image('images/footer_qr_code.png',$this->GetX()+182,$this->GetY()-10,15,0);
+	$this->Ln();
+	
+	$this->SetY($this->GetY()-5);
+	$this->SetX(60);
+	$this->SetFont('Arial','',6);
+	$this->Cell(70,3,$str2,0,0,'C');
+	$this->SetX($this->GetX()+10);
+	$this->SetFont('Arial','U',6);
+	$this->Cell(15,5,' www.zipLogix.com',0,0,'','','https://zipLogix.com');
+    }
+	if($this->PageNo() == 2){
+	$str1=utf8_decode('Buyer-Broker Exclusive Employment Agreement . Updated: February 2010');
+	$str2=utf8_decode('Copyright © 2010 Arizona Association of REALTORS®. All rights reserved.');
+	$str3=utf8_decode('Produced with zipForm® by zipLogix  18070 Fifteen Mile Road, Fraser, Michigan 48026');
+	$this->Cell(25,5,'','',1,'');
+	
+	$this->Line(15,$this->GetY(),205,$this->GetY());
+	$this->Line(15,$this->GetY(),15,$this->GetY()+14);
+	$this->Line(205,$this->GetY(),205,$this->GetY()+14);
+	$this->Line(15,$this->GetY()+14,205,$this->GetY()+14);
+	
+	$this->SetFont('Arial','B',8);	
+	$this->Cell(5,1,'','',0,''); 	// Broker use
+	$this->Cell(20,5,'For Broker Use Only:','',1,'');
+	$this->SetFont('Arial','',8);
+	$this->Cell(5,1,'','',0,'');
+	$this->Cell(30,5,'Brokerage File/Log No.','',0,'');
+	$this->Cell(30,5,$info['brokerage_file'],'B',0,'C');
+	$this->Cell(25,5,"Manager's Initials.",'',0,'');
+	$this->Cell(25,5,$info['managers_initials'],'B',0,'C');  
+	$this->Cell(25,5,"Broker's Initials.",'',0,'');
+	$this->Cell(25,5,$info['brokers_initials'],'B',0,'C');  
+	$this->Cell(10,5,"Date",'',0,'');
+	$this->Cell(20,5,$info['brokers_date'],'B',2,'C'); 
+	$this->Cell(20,5,'MO/DA/YR','T',1,'C');
+	
+	$this->SetFont('Arial','',8);
+	$this->Cell(195,3,'','B',1,'');  	
+	$this->Cell(195,4,$str1,'',1,'C'); 
+	$this->Cell(195,4,$str2,'',1,'C'); 
+	$this->Cell(195,2,'','T',1,''); 
+	$this->Cell(200,5,'Page '.$this->PageNo().' of {nb}','',1,'C');  
+	$this->Cell(20,5,'','',1,''); 
+	
+	$this->Image('images/footer_qr_code.png',$this->GetX()+182,$this->GetY()-7,15,0);
+	$this->Ln();
+	
+	$this->SetY($this->GetY()-5);
+	$this->SetX(60);
+	$this->SetFont('Arial','',6);
+	$this->Cell(70,3,$str3,0,0,'C');
+	$this->SetX($this->GetX()+10);
+	$this->SetFont('Arial','U',6);
+	$this->Cell(15,5,' www.zipLogix.com',0,0,'','','https://zipLogix.com');
+	}
+}
+
+}
+
+$pdf = new PDF('P','mm',array(215,335));
+$pdf->AliasNbPages();
+$pdf->AddPage();
+
+$pdf->Ln();	
+
+//text
+	$pdf->Cell(0,2,"",'',1,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,8,'1.','',0,'R');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(22,8,"Buyer/Tenant:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(155,6,$info['buyer_name'],'B',0,'');
+	$pdf->Cell(20,8,'("Buyer")','',1,'');
+	$pdf->Cell(0,1,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,8,'2.','',0,'R');
+	$pdf->SetFont('Arial','B',8);
+	$pdf->Cell(10,8,"Firm:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(82,6,$info['firm_name'],'B',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(22,8,"Salesperson:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(62,6,$info['salesperson_name'],'B',0,'');
+	$pdf->Cell(15,8,'("Broker")','',1,'C');
+	$pdf->SetFont('Arial','',6);
+	$pdf->Cell(100,1,'(FIRM NAME)','',0,'C');
+	$pdf->Cell(100,1,"(SALESPERSON'S NAME)",'',1,'C');
+	$pdf->Cell(0,1,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,5,'3.','',0,'R');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(10,5,"Term:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(53,5,'This Agreement shall commence on','',0,'');
+	$pdf->Cell(30,4,$info['agreement_commence'],'B',0,'');
+	$pdf->Cell(40,5,"and expire at 11:59 p.m. on",'',0,'');
+	$pdf->Cell(55,4,$info['salesperson_name'],'B',0,'');
+	$pdf->Cell(2,5,'.','',1,'C');
+	$pdf->Cell(0,1,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,5,'4.','',0,'R');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(22,5,"Employment:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(50,5,"Broker agrees to:",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,4,'5.','',0,'R');
+	$pdf->Cell(5,4,"a:",'',0,'');
+	$pdf->Cell(50,4,"locate Property meeting the following general description:",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,4,'6.','',0,'R');
+	$pdf->Cell(5,4,"",'',0,'');
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->Cell(20,4,'Residential','',0,''); 
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->Cell(10,4,'Land','',0,''); 
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->Cell(20,4,'Commercial','',0,''); 
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->Cell(10,4,'Other','',0,''); 
+	$pdf->Cell(100,4,$info['employment_other'],'B',0,''); 
+	$pdf->Cell(15,4,'("Property")','',1,'C'); 
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,4,'7.','',0,'R');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"b. negotiate at Buyer's direction to obtain acceptable terms and conditions for the purchase, exchange, option or lease of the Property;",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,4,'8.','',0,'R');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"c. assist Buyer during the transaction within the scope of Broker's expertise and licensing.",'',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(6,4,'9.','',0,'R');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(33,4,'Agency Relationship','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"The agency relationship between Buyer and Broker shall be:",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(10,4,'10.','',0,'');
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"as set forth in the Real Estate Agency Disclosure and Election form.",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(10,4,'11.','',0,'');
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(10,4,"Other",'',0,'');
+	$pdf->Cell(80,4,$info['agency_other'],'B',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'12.','',0,''); 
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(22,4,"Retainer Fee: ",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(97,4,'Buyer agrees to pay Broker a non-refundable fee in the amount of $','',0,'');
+	$pdf->Cell(17,4,$info['retainer_fee'],'B',0,'');
+	$pdf->Cell(40,4,', which is earned when paid, for initial','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'13.','',0,'');
+	$pdf->Cell(53,4,'consultation and research. This fee','',0,'');
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->SetFont('Arial','b',9);
+	$pdf->Cell(18,4,"shall; or",'',0,'');
+	$pdf->Cell(3,4,$pdf->Rect($pdf->GetX(),$pdf->GetY()+1,3,3),'',0,''); 
+	$pdf->Cell(18,4,"shall not",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,'be credited against any other compensation owed by Buyer to','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'14.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"Broker as pursuant to Lines 27 - 29.",'',1,'');
+	
+	$pdf->Cell(0,3,"",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'15.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(30,4,'Property Viewings: ','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(90,4,"Buyer agrees to work exclusively with Broker and be accompanied by Broker on Buyer's first visit to any Property.",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'16.','',0,'');
+	$pdf->SetFont('Arial','b',9);
+	$pdf->Cell(0,4,'If Broker does not accompany Buyer on the first visit to any Property, including a model home, new home/lot or "open house"','',1,'');
+
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'17.','',0,'');
+	$pdf->SetFont('Arial','b',9);
+	$pdf->CellFitSpaceForce(0,4,"held by a builder, seller or other real estate broker, Buyer acknowledges that the builder, seller or seller's broker may refuse to ",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'18.','',0,'');
+	$pdf->SetFont('Arial','b',9);
+	$pdf->Cell(0,4,"compensate Broker, which will eliminate any credit against the compensation owed by Buyer to Broker.",'',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'19.','',0,'');
+	$pdf->SetFont('Arial','b',9);
+	$pdf->Cell(25,5,'Due Diligence: ','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"Once an acceptable Property is located, Buyer agrees to act in good faith to acquire the Property and conduct any",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'20.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"inspections/investigations of the Property that Buyer deems material and/or important.",'',1,'');
+	
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'21.','',0,'');
+	$pdf->SetFont('Arial','I',9);
+	$pdf->CellFitSpaceForce(0,4,"Note: Buyer acknowledges that pursuant to Arizona law, Sellers, Lessors and Brokers are not obligated to disclose that a Property is",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'22.','I',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"or has been: (1) the site of a natural death, suicide, homicide, or any crime classified as a felony; (2) owned or occupied by a person",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'23.','',0,'');
+	$pdf->SetFont('Arial','I',9);
+	$pdf->CellFitSpaceForce(0,4,"exposed to HIV, or diagnosed as having AIDS or any other disease not known to be transmitted through common occupancy of real",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'24.','I',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"estate; or (3) located in the vicinity of a sex offender.",'',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'25.','',0,'');
+	$pdf->SetFont('Arial','b',9);
+	$pdf->CellFitSpaceForce(0,4,"Buyer agrees to consult the Arizona Department of Real Estate Buyer Advisory provided by the Arizona Association of",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'26.','',0,'');
+	$pdf->SetFont('Arial','b',9);
+	$pdf->Cell(0,4,utf8_decode("REALTORS® at www.aaronline.com to assist in Buyer's inspections and investigations."),'',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'27.','',0,'');
+	$pdf->SetFont('Arial','b',9);
+	$pdf->Cell(24,4,'Compensation: ','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"Buyer agrees to compensate Broker as follows:",'',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'28.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(55,4,"The amount of compensation shall be: ",'',0,'');
+	$pdf->Cell(135,4,$info['amount_compensation'],'B',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'29.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"or the compensation Broker receives from seller or seller's broker, whichever is greater. In either event, Buyer authorizes Broker to accept",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'30.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"compensation from seller or seller's broker, which shall be credited against any compensation owed by Buyer to Broker pursuant to this",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'31.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"Agreement. Broker's compensation shall be paid at the time of and as a condition of closing or as otherwise agreed upon in writing.",'',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'32.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(70,4,"Buyer agrees to pay such compensation if within",'',0,'');
+	$pdf->Cell(15,4,$info['agrees_days'],'B',0,'');
+	$pdf->Cell(60,4,"calendar days after the termination of this Agreement, Buyer enters into an",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'33.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"agreement to purchase, exchange, option or lease any Property shown to Buyer or negotiated by Broker on behalf of the Buyer during the",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'34.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"term of this Agreement, unless Buyer has entered into a subsequent buyer-broker exclusive employment agreement with another broker.",'',1,'');
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'35.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"If completion of any transaction is prevented by Buyer's breach or with the consent of Buyer other than as provided in the purchase",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'36.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"contract, the total compensation shall be due and payable by Buyer.",'',1,'');
+	
+	$pdf->Cell(0,3,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'37.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,utf8_decode("COMMISSIONS   PAYABLE   ARE   NOT   SET   BY   ANY   BOARD   OR   ASSOCIATION   OF   REALTORS®   OR   MULTIPLE"),'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'38.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"LISTING   SERVICE   OR   IN   ANY   MANNER   OTHER   THAN   AS   NEGOTIATED   BETWEEN   BROKER   AND   BUYER.",'',1,'');
+
+	$pdf->SetFont('Arial','',12);
+	$pdf->Cell(195,10,">>",'',1,'R');
+	
+	$pdf->AddPage();
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(200,4,'Page '.$pdf->PageNo().' of {nb}','',1,'R');
+	$pdf->SetFont('Arial','BI',10);
+	$pdf->Cell(5,4,'','',0,'L');
+	$pdf->Cell(190,4,'Buyer-Broker Exclusive Employment Agreement >> ','',2,'L');
+	$pdf->Cell(190,1,'','B',1,'L');
+	$pdf->Cell(180,3,' ','',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,7,'39.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(30,7,'Additional Terms:  ','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(160,4,$info['additional_terms'],'B',1,'');
+	$pdf->Cell(160,2,'','',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(8,7,'40.','',0,'');
+	$pdf->Cell(188,5,"",'B',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(8,7,'41.','',0,'');
+	$pdf->Cell(188,5,"",'B',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(8,7,'42.','',0,'');
+	$pdf->Cell(188,5,"",'B',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(8,7,'43.','',0,'');
+	$pdf->Cell(188,5,"",'B',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(8,7,'45.','',0,'');
+	$pdf->Cell(188,5,"",'B',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(8,7,'46.','',0,'');
+	$pdf->Cell(188,5,"",'B',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(8,7,'47.','',0,'');
+	$pdf->Cell(188,5,"",'B',1,'');
+	$pdf->Cell(0,2,"",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'48.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(43,4,"Equal Housing Opportunity:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"Broker's policy is to abide by all local, state, and federal laws prohibiting discrimination against any",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'49.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"individual or group of individuals. Broker has no duty to disclose the racial, ethnic, or religious composition of any neighborhood,",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'50.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"community, or building, nor whether persons with disabilities are housed in any home or facility, except that the Broker may identify",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'51.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"housing facilities meeting the needs of a disabled buyer.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'52.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(37,4,"Other Potential Buyers:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"Buyer consents and acknowledges that other potential buyers represented by Broker may consider, make",'',1,'');
+	
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'53.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"offers on, or acquire an interest in the same or similar properties as Buyer is seeking.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'54.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(61,4,'Alternative Dispute Resolution ("ADR"): ','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,'Buyer and Broker agree to mediate any dispute or claim arising out of or relating to this','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'55.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,utf8_decode("Agreement in accordance with the mediation procedures of the applicable state or local REALTOR® association or as otherwise"),'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'56.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"agreed. All mediation costs shall be paid equally by the parties. In the event that mediation does not resolve all disputes or claims,",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'57.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"the unresolved disputes or claims shall be submitted for binding arbitration. In such event, the parties shall agree upon an arbitrator",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'58.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"and cooperate in the scheduling of an arbitration hearing. If the parties are unable to agree on an arbitrator, the dispute shall be",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'59.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,'submitted to the American Arbitration Association ("AAA") in accordance with the AAA Arbitration Rules for the Real Estate Industry.','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'60.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"The decision of the arbitrator shall be final and nonappealable. Judgment on the award rendered by the arbitrator may be entered in",'',1,'');
+	
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'61.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"any court of competent jurisdiction.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'62.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(39,4,"Attorney Fees and Costs: ",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,utf8_decode("In any non-REALTOR® association proceeding to enforce the compensation due to Broker pursuant to"),'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'63.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"this Agreement, the prevailing party shall be awarded their reasonable attorney fees and arbitration costs.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'64.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(21,4,"Arizona Law:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"This Agreement shall be governed by Arizona law and jurisdiction is exclusively conferred on the State of Arizona.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'65.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(40,4,"Copies and Counterparts:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"This Agreement may be executed by facsimile or other electronic means and in any number of",'',1,'');
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'66.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"counterparts. A fully executed facsimile or electronic copy of the Agreement shall be treated as an original Agreement.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'67.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(28,4,"Entire Agreement:",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"This Agreement, and any addenda and attachments, shall constitute the entire agreement between Buyer and",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'68.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"Broker, shall supersede any other written or oral agreements between Buyer and Broker and can be modified only by a writing",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'69.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"signed by Buyer and Broker.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'70.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(15,4,"Capacity: ",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->CellFitSpaceForce(0,4,"Buyer warrants that Buyer has the legal capacity, full power and authority to enter into this Agreement and consummate",'',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'71.','',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"the transaction contemplated hereby on Buyer's own behalf or on behalf of the party Buyer represents, as appropriate.",'',1,'');
+	$pdf->Cell(5,2,'','',1,'');
+
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(5,4,'72.','',0,'');
+	$pdf->SetFont('Arial','B',9);
+	$pdf->Cell(20,4,"Acceptance: ",'',0,'');
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(0,4,"Buyer hereby agrees to all of the terms and conditions herein and acknowledges receipt of a copy of this Agreement.",'',1,'');
+	
+	$pdf->Cell(0,3,'','',1,''); 
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(7,9,'73.','',0,'');
+	$pdf->Cell(60,7,$info['buyers_signiture1'],'',0,'L');
+	$pdf->Cell(30,7,$info['buyers_signiture_date1'],'',0,'R');
+	$pdf->Cell(5,7,'','',0,'');
+	$pdf->Cell(60,7,$info['buyers_signiture2'],'',0,'L');
+	$pdf->Cell(30,7,$info['buyers_signiture_date2'],'',1,'R');
+	$pdf->Cell(7,1,'','',0,'');
+	$pdf->Cell(90,1,'','T',0,'');
+	$pdf->Cell(5,1,'','',0,'');
+	$pdf->Cell(90,1,'','T',1,'');
+	$pdf->Cell(7,2,'','',0,'');
+	$pdf->SetFont('Arial','',6);
+	$pdf->Cell(60,2,"^  BUYER'S SIGNATURE",'',0,'L');
+	$pdf->Cell(30,2,"MO/DA/YR",'',0,'R');
+	$pdf->Cell(5,2,'','',0,'');
+	$pdf->Cell(60,2,"^  BUYER'S SIGNATURE",'',0,'L');
+	$pdf->Cell(30,2,"MO/DA/YR",'',1,'R');
+	
+	$pdf->Cell(0,3,'','',1,''); 
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(7,9,'74.','',0,'');
+	$pdf->Cell(90,7,$info['street'],'',0,'L');
+	$pdf->Cell(50,7,$info['city'],'',0,'C');
+	$pdf->Cell(20,7,$info['state'],'',0,'C');
+	$pdf->Cell(20,7,$info['zip_code'],'',1,'R');
+	$pdf->Cell(7,2,'','',0,'C');
+	$pdf->Cell(185,2,'','T',1,'C');
+	$pdf->Cell(7,5,'','',0,'C');
+	$pdf->SetFont('Arial','',6);
+	$pdf->Cell(90,2,"STREET",'',0,'L');
+	$pdf->Cell(50,2,"CITY",'',0,'C');
+	$pdf->Cell(20,2,"STATE",'',0,'C');
+	$pdf->Cell(20,2,"ZIP CODE",'',1,'R');
+	
+	$pdf->Cell(0,3,'','',1,''); 
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(7,9,'75.','',0,'');
+	$pdf->Cell(90,7,$info['telephone'],'',0,'L');
+	$pdf->Cell(5,7,'','',0,'');
+	$pdf->Cell(90,7,$info['fax'],'',1,'L');
+	$pdf->Cell(7,1,'','',0,'');
+	$pdf->Cell(90,1,'','T',0,'');
+	$pdf->Cell(5,1,'','',0,'');
+	$pdf->Cell(90,1,'','T',1,'');
+	$pdf->SetFont('Arial','',6);
+	$pdf->Cell(7,1,'','',0,'');
+	$pdf->Cell(90,2,"TELEPHONE",'',0,'L');
+	$pdf->Cell(5,2,"",'',0,'');
+	$pdf->Cell(90,2,"FAX",'',1,'L');
+	
+	$pdf->Cell(0,3,'','',1,''); 
+	
+	$pdf->SetFont('Arial','',9);
+	$pdf->Cell(7,9,'76.','',0,'');
+	$pdf->Cell(90,7,$info['firm_name1'],'',0,'L');
+	$pdf->Cell(5,7,'','',0,'');
+	$pdf->Cell(50,7,$info['salesperson_signiture'],'',0,'L');
+	$pdf->Cell(40,7,$info['salesperson_date'],'',1,'R');
+	$pdf->Cell(7,1,'','',0,'');
+	$pdf->Cell(90,1,'','T',0,'');
+	$pdf->Cell(5,1,'','',0,'');
+	$pdf->Cell(90,1,'','T',1,'');
+	$pdf->SetFont('Arial','',6);
+	$pdf->Cell(7,1,'','',0,'');
+	$pdf->Cell(90,2,"FIRM NAME",'',0,'L');
+	$pdf->Cell(5,2,"",'',0,'');
+	$pdf->Cell(50,2,"^ SALESPERSON SIGNATURE",'',0,'L');
+	$pdf->Cell(40,2,"MO/DA/YR",'',1,'R');
+
+$pdf->Output('','I');
+
+
+
+?>

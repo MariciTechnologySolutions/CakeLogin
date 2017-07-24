@@ -1,0 +1,281 @@
+/* 
+    Document   : extend
+    Created on : May 2, 2015, 3:54:43 PM
+    Author     : steve
+    Description:
+        Purpose of the stylesheet follows.
+        for custom css styles used during build
+*/
+
+.inner-content{
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+}
+#split-bar {
+    background-color:#1f333b;
+    float: left;
+    width: 5px;
+    cursor: col-resize;
+    height: 100%;
+}
+ .message{
+    min-height: 50px;
+    background-color: powderblue;
+    padding: 10px 50px; 
+    font-size: 20px;
+    vertical-align: central
+}
+.singleTop ul.features{
+        margin-top: 5px;
+    }
+    .singleTop ul.features li{
+        padding: 5px;
+        width: 20%;
+    }
+    .singleTop address{
+        font-size: 14px
+    }
+    H1.pageTitle{
+        margin-bottom: 15px
+    }
+    .highlight_comps{
+            background: #ffDE00; /* Old browsers */
+
+    }
+    .btn-cstm {
+    background: #239bc6; /* Old browsers */
+    background: -moz-linear-gradient(top,  #239bc6 0%, #1d82aa 48%, #1d82aa 48%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#239bc6), color-stop(48%,#1d82aa), color-stop(48%,#1d82aa)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #239bc6 0%,#1d82aa 48%,#1d82aa 48%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #239bc6 0%,#1d82aa 48%,#1d82aa 48%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #239bc6 0%,#1d82aa 48%,#1d82aa 48%); /* IE10+ */
+    background: linear-gradient(to bottom,  #239bc6 0%,#1d82aa 48%,#1d82aa 48%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#239bc6', endColorstr='#1d82aa',GradientType=0 ); /* IE6-9 */;
+    border: 2px solid #ccc;
+    color: #fff;
+   
+    
+}
+.special{
+background: #e5e5e5; /* Old browsers */
+background: -moz-linear-gradient(top,  #e5e5e5 0%, #ffffff 100%); /* FF3.6+ */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e5e5e5), color-stop(100%,#ffffff)); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top,  #e5e5e5 0%,#ffffff 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top,  #e5e5e5 0%,#ffffff 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top,  #e5e5e5 0%,#ffffff 100%); /* IE10+ */
+background: linear-gradient(to bottom,  #e5e5e5 0%,#ffffff 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e5e5e5', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+
+}
+
+div.dropdown-menu.open {
+    max-height: 250px!important;
+    max-width: 300px!important;
+}
+
+.dropdown-menu > li > a {
+    white-space: normal!important;
+}
+
+#loaderNotifier{
+    background-color: #FACB97;
+    min-width: 12%;
+    position: fixed;
+    left: 44%;
+    text-align: center;
+    z-index: 9999;
+    padding: 4px;
+    top: 0%;
+    display: none;
+}
+
+.group-collapse{
+    display: none;
+}
+
+#content{
+    float: none!important;
+    width: auto!important;
+    height: 100%;
+}
+
+
+/** MENU */
+.tagmenuc {
+    position:relative;
+    height: 25px;
+}
+
+.maptag {
+    float: right;
+    padding-right: 10px;
+}
+
+.tagmenuc ul, .maptag ul {
+    margin: 0px;
+    padding: 0px;
+    float:left;
+    line-height: 25px;
+}
+.tagmenuc li, .maptag li {
+    list-style:none;
+}
+.tagmenuc>ul>li, .maptag>ul>li {
+    float: left;
+    margin-right: 1px;
+    position:relative;
+    background-color: #398439;
+    width: 87px;
+}
+
+.tagmenuc>ul>li ul, .maptag>ul>li ul {
+    height:100%;
+    position:absolute;
+    bottom:-100%
+}
+.tagmenuc>ul>li span, .maptag>ul>li span {
+        background: #398439;
+        color: white;
+        bottom:0px;
+        padding-left: 10px;
+        float:left;        
+}
+
+.maptag>ul>li, .maptag>ul>li span {
+    background: none;
+}
+
+.tagmenuc>ul>li ul>li, .maptag>ul>li ul>li {
+    bottom:0px;
+    display:none;
+    padding-left: 10px;
+    background:rgba(200, 200, 200, 1);
+    color: #fff;
+    width: 87px;
+    float:left;
+}
+.tagmenuc>ul>li:hover ul>li, .maptag>ul>li:hover ul>li {
+    display:block
+}
+.tagmenuc a {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: #FFFFFF;
+    background: #398439;
+    height: 25px;
+    padding-top: 7px;
+}
+
+.maptag a {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+}
+
+.tagmenuc a:hover, .tagmenuc>ul>li ul>li:hover, .maptag a:hover, .maptag>ul>li ul>li:hover {
+    text-decoration: none;
+    cursor:pointer;
+    background: #132120;
+}
+.tagmenuc .active, .maptag .active {
+    background: #398439;
+}
+
+.ui-state-focus{
+    background-color: gray;
+    color: #fff;
+}
+
+.mapDivSize{
+    float:left;
+    width: 50%;
+}
+
+.mapDivSize100{
+    width: 100%!important;
+}
+
+#imagedivv, #inboxdivv{
+    display: none;
+    overflow: auto;
+}
+
+.pad-left-0 {
+    padding-left: 0px!important;
+}
+
+.pad-right-0 {
+    padding-right: 0px!important;
+}
+
+.mytabview{
+    background-color: gray;
+    color: white;
+}
+
+.mytabview div{
+    border: 1px solid;
+    cursor: pointer;
+}
+
+.mytabview .selectedTab, .mytabview div:hover{
+    background-color: white;
+    color: gray;    
+}
+
+.commentContent {
+    margin-left: 0px!important;
+}
+.comment.reply {
+    padding-left: 15px!important;
+}
+.myinboxdiv {
+    padding: 0px;
+}
+.unread{
+    background-color: black;
+    color: #fff;
+    padding: 0 6px 0 5px;
+}
+
+.reply .commentContent {
+    background-color: gainsboro;
+}
+
+.usernames:hover{
+    cursor: pointer;
+}
+
+#usermessagesDIV{
+    max-height: 400px;
+    overflow: auto;
+}
+
+div.disabledCont
+{
+  pointer-events: none;
+
+  /* for "disabled" effect */
+  opacity: 0.5;
+  background: #CCC;
+}
+
+.notifyer_num{
+    display: none;
+}
+
+.hoverEffectMsg{
+    background-color: #fff;
+    color: red;
+}
+
+.no-touch a.headerUser:hover, .headerUserWraper.open a.headerUser {
+    background-color: #1f333b;
+}
+
+.no-touch a.navHandler:hover {
+    background-color: #1f333b;
+    text-decoration: none;
+}

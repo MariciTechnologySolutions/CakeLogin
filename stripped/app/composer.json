@@ -1,0 +1,14 @@
+{
+    "config": {
+        "vendor-dir": "Vendor"
+    },
+    "require": {
+        "troydavisson/phrets": "2.*",
+        "monolog/monolog": "^1.18",
+        "danielstjules/stringy": "^2.2",
+        "tpyo/amazon-s3-php-class": "^0.5.1",
+        "mailgun/mailgun-php": "1.8",
+        "phpoffice/phpword": "^0.13.0",
+        "devtronic/legendary-mind": "^2.1"
+    }
+}
